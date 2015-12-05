@@ -704,10 +704,31 @@ public class ImportTool
         @Override
         public Character apply( String value ) throws RuntimeException
         {
-            if ( value.equals( "TAB" ) )
+            // Parse "raw" ASCII character style characters:
+            // - \123 --> character with id 123
+            // - \t   --> tab character
+            if ( value.startsWith( "\"" ) && value.length() > 0 )
             {
-                return '\t';
+                String raw = value.substring( 1 );
+                try
+                {
+                    return (char) Integer.parseInt( raw );
+                }
+                catch ( NumberFormatException e )
+                {
+                    if ( raw.equals( "t" ) )
+                    {
+                        return Configuration.TABS.delimiter();
+                    }
+                    throw new IllegalArgumentException( "Invalid delimiter character '" + value + "'" );
+                }
             }
+            // hard coded TAB --> tab character
+            else if ( value.equals( "TAB" ) )
+            {
+                return Configuration.TABS.delimiter();
+            }
+            // default to just returning the configured character
             return fallback.apply( value );
         }
     };
